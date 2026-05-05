@@ -60,78 +60,78 @@ d["div_monthly"]  = round(d["div_26"] / 4) if d["div_26"] else 0
 d["div_annual"]   = d["div_26"] * 3
 
 toss_rows = []
-for r in range(5, 12):
+for r in range(5, 100):
     rk = ws_t.cell(r, 1).value
     nm = ws_t.cell(r, 2).value
-    if rk and nm:
-        toss_rows.append({
-            "rank": int(rk), "name": nm,
-            "qty":  v(ws_t.cell(r, 3).value),
-            "cost": v(ws_t.cell(r, 5).value),
-            "cur":  v(ws_t.cell(r, 9).value),
-            "gain": v(ws_t.cell(r, 11).value),
-            "ret":  vp(ws_t.cell(r, 12).value),
-            "div":  v(ws_t.cell(r, 13).value),
-        })
+    if not nm: break  # 종목명 비면 자동 중단
+    toss_rows.append({
+        "rank": int(rk) if rk else r - 4, "name": nm,
+        "qty":  v(ws_t.cell(r, 3).value),
+        "cost": v(ws_t.cell(r, 5).value),
+        "cur":  v(ws_t.cell(r, 9).value),
+        "gain": v(ws_t.cell(r, 11).value),
+        "ret":  vp(ws_t.cell(r, 12).value),
+        "div":  v(ws_t.cell(r, 13).value),
+    })
 
 retire_rows = []
-for r in range(6, 14):
+for r in range(6, 100):
     no = ws_r.cell(r, 1).value
     nm = ws_r.cell(r, 2).value
-    if no and nm:
-        retire_rows.append({
-            "no": int(no), "name": nm,
-            "qty": v(ws_r.cell(r, 6).value), "buy": v(ws_r.cell(r, 7).value),
-            "cur_price": v(ws_r.cell(r, 9).value),
-            "cost": v(ws_r.cell(r, 8).value), "cur": v(ws_r.cell(r, 11).value),
-            "gain": v(ws_r.cell(r, 12).value), "ret": vp(ws_r.cell(r, 13).value),
-            "tgt":  vp(ws_r.cell(r, 4).value), "now": vp(ws_r.cell(r, 14).value),
-            "diff": vp(ws_r.cell(r, 15).value), "adj": v(ws_r.cell(r, 16).value),
-        })
+    if not nm: break  # 종목명 비면 자동 중단
+    retire_rows.append({
+        "no": int(no) if no else r - 5, "name": nm,
+        "qty": v(ws_r.cell(r, 6).value), "buy": v(ws_r.cell(r, 7).value),
+        "cur_price": v(ws_r.cell(r, 9).value),
+        "cost": v(ws_r.cell(r, 8).value), "cur": v(ws_r.cell(r, 11).value),
+        "gain": v(ws_r.cell(r, 12).value), "ret": vp(ws_r.cell(r, 13).value),
+        "tgt":  vp(ws_r.cell(r, 4).value), "now": vp(ws_r.cell(r, 14).value),
+        "diff": vp(ws_r.cell(r, 15).value), "adj": v(ws_r.cell(r, 16).value),
+    })
 
 pension_rows = []
-for r in range(6, 10):
+for r in range(6, 100):
     no = ws_p.cell(r, 1).value
     nm = ws_p.cell(r, 2).value
-    if no and nm:
-        qty = v(ws_p.cell(r, 5).value)
-        buy = v(ws_p.cell(r, 6).value)
-        pension_rows.append({
-            "no": int(no), "name": nm, "qty": qty, "buy": buy,
-            "cur_price": v(ws_p.cell(r, 7).value), "cost": qty * buy,
-            "cur": v(ws_p.cell(r, 9).value), "gain": v(ws_p.cell(r, 10).value),
-            "ret": vp(ws_p.cell(r, 11).value), "tgt": vp(ws_p.cell(r, 4).value),
-            "now": vp(ws_p.cell(r, 12).value), "diff": vp(ws_p.cell(r, 13).value),
-            "adj": v(ws_p.cell(r, 14).value),
-        })
+    if not nm: break  # 종목명 비면 자동 중단
+    qty = v(ws_p.cell(r, 5).value)
+    buy = v(ws_p.cell(r, 6).value)
+    pension_rows.append({
+        "no": int(no) if no else r - 5, "name": nm, "qty": qty, "buy": buy,
+        "cur_price": v(ws_p.cell(r, 7).value), "cost": qty * buy,
+        "cur": v(ws_p.cell(r, 9).value), "gain": v(ws_p.cell(r, 10).value),
+        "ret": vp(ws_p.cell(r, 11).value), "tgt": vp(ws_p.cell(r, 4).value),
+        "now": vp(ws_p.cell(r, 12).value), "diff": vp(ws_p.cell(r, 13).value),
+        "adj": v(ws_p.cell(r, 14).value),
+    })
 
 kc_rows = []
-for r in range(5, 10):
+for r in range(5, 100):
     no = ws_k.cell(r, 1).value
     nm = ws_k.cell(r, 2).value
-    if no and nm:
-        kc_rows.append({
-            "no": int(no), "name": nm,
-            "qty": v(ws_k.cell(r, 6).value), "buy": v(ws_k.cell(r, 7).value),
-            "cur_price": v(ws_k.cell(r, 9).value),
-            "cost": v(ws_k.cell(r, 8).value), "cur": v(ws_k.cell(r, 11).value),
-            "gain": v(ws_k.cell(r, 12).value), "ret": vp(ws_k.cell(r, 13).value),
-            "tgt":  vp(ws_k.cell(r, 4).value), "now": vp(ws_k.cell(r, 14).value),
-            "diff": vp(ws_k.cell(r, 15).value), "adj": v(ws_k.cell(r, 16).value),
-        })
+    if not nm: break  # 종목명 비면 자동 중단
+    kc_rows.append({
+        "no": int(no) if no else r - 4, "name": nm,
+        "qty": v(ws_k.cell(r, 6).value), "buy": v(ws_k.cell(r, 7).value),
+        "cur_price": v(ws_k.cell(r, 9).value),
+        "cost": v(ws_k.cell(r, 8).value), "cur": v(ws_k.cell(r, 11).value),
+        "gain": v(ws_k.cell(r, 12).value), "ret": vp(ws_k.cell(r, 13).value),
+        "tgt":  vp(ws_k.cell(r, 4).value), "now": vp(ws_k.cell(r, 14).value),
+        "diff": vp(ws_k.cell(r, 15).value), "adj": v(ws_k.cell(r, 16).value),
+    })
 
 div_rows = []
-for r in range(4, 20):
+for r in range(4, 100):
     rk = ws_d.cell(r, 1).value
     nm = ws_d.cell(r, 2).value
-    if rk and nm:
-        div_rows.append({
-            "rank": int(rk), "name": nm,
-            "acct": ws_d.cell(r, 3).value or "",
-            "d26":  v(ws_d.cell(r, 4).value),
-            "d25":  v(ws_d.cell(r, 5).value),
-            "note": ws_d.cell(r, 6).value or "",
-        })
+    if not nm: break  # 종목명 비면 자동 중단
+    div_rows.append({
+        "rank": int(rk) if rk else r - 3, "name": nm,
+        "acct": ws_d.cell(r, 3).value or "",
+        "d26":  v(ws_d.cell(r, 4).value),
+        "d25":  v(ws_d.cell(r, 5).value),
+        "note": ws_d.cell(r, 6).value or "",
+    })
 
 goals = []
 for row in toss_rows:
