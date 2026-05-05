@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>주식투자 포트폴리오 대쉬보드 — 2026.05.05</title>
+<style>
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:'Apple SD Gothic Neo','맑은 고딕',sans-serif; background:#f1f5f9; color:#1e293b; font-size:13px; }
+  .top-bar{ background:linear-gradient(135deg,#1e3a5f,#2563eb); color:white; padding:20px 32px; }
+  .top-bar h1{ font-size:22px; font-weight:700; letter-spacing:-0.5px; }
+  .top-bar .sub{ font-size:12px; color:#93c5fd; margin-top:4px; }
+  .container{ max-width:1400px; margin:0 auto; padding:20px 24px; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:16px; }
+  .grid-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:16px; }
+  .card{ background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:20px; }
+  .card-title{ font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+  .card-value{ font-size:24px; font-weight:700; color:#1e3a5f; line-height:1.2; }
+  .card-sub{ font-size:12px; color:#64748b; margin-top:4px; }
+  .sec{ background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:16px; overflow:hidden; }
+  .sec-header{ background:#1e3a5f; color:white; padding:12px 20px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+  .sec-header .badge{ background:rgba(255,255,255,.2); border-radius:20px; padding:2px 10px; font-size:11px; }
+  .sec-body{ padding:20px; }
+  table{ width:100%; border-collapse:collapse; font-size:12px; }
+  th{ background:#f8fafc; color:#475569; font-weight:600; padding:8px 10px; border-bottom:2px solid #e2e8f0; text-align:right; white-space:nowrap; }
+  th:first-child{ text-align:center; }
+  td{ padding:7px 10px; border-bottom:1px solid #f1f5f9; }
+  tr:last-child td{ border-bottom:none; }
+  tr:hover td{ background:#f8fafc; }
+  .pos{ color:#16a34a; } .neg{ color:#dc2626; }
+  .total-row td{ background:#fef9f0; font-weight:700; border-top:2px solid #e2e8f0; }
+  .rebal-warn td{ background:#fef2f2 !important; }
+  /* 계좌 카드 */
+  .acct-card{ border:1px solid #e2e8f0; border-radius:8px; padding:14px; }
+  .acct-name{ font-weight:700; color:#1e3a5f; margin-bottom:8px; font-size:13px; }
+  .acct-amount{ font-size:20px; font-weight:700; color:#1e3a5f; }
+  .acct-detail{ display:flex; gap:12px; margin-top:8px; flex-wrap:wrap; }
+  .acct-detail span{ font-size:11px; color:#64748b; }
+  .acct-detail b{ color:#374151; }
+  /* 자산배분 바 */
+  .alloc-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .alloc-label{ width:100px; font-size:12px; font-weight:600; color:#374151; flex-shrink:0; }
+  .alloc-bar-wrap{ flex:1; height:14px; background:#f1f5f9; border-radius:7px; overflow:hidden; }
+  .alloc-bar{ height:100%; border-radius:7px; transition:width .3s; }
+  .alloc-pct{ width:50px; text-align:right; font-size:12px; font-weight:700; color:#374151; flex-shrink:0; }
+  .alloc-amt{ width:110px; text-align:right; font-size:11px; color:#64748b; flex-shrink:0; }
+  /* 목표달성 */
+  .goal-item{ border:1px solid #e2e8f0; border-radius:8px; padding:14px; margin-bottom:10px; }
+  .goal-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .goal-name{ font-size:15px; font-weight:700; color:#1e3a5f; }
+  .goal-eta{ font-size:12px; font-weight:600; }
+  .goal-nums{ display:flex; gap:16px; margin-bottom:10px; font-size:12px; color:#64748b; }
+  .progress-bar{ height:16px; background:#f1f5f9; border-radius:8px; overflow:hidden; }
+  .progress-fill{ height:100%; border-radius:8px; transition:width .5s; }
+  /* 위험자산 */
+  .risk-bar-wrap{ height:20px; background:#f1f5f9; border-radius:10px; overflow:hidden; margin:8px 0; }
+  .risk-bar{ height:100%; border-radius:10px; background:#22c55e; }
+  /* 김찬호 박스 */
+  .kc-box{ border:2px dashed #94a3b8; border-radius:10px; padding:14px; background:#f8fafc; }
+  .kc-title{ font-size:11px; color:#64748b; margin-bottom:8px; font-weight:600; }
+  .stamp{ display:inline-block; background:#dbeafe; color:#1d4ed8; font-size:10px; padding:2px 8px; border-radius:10px; font-weight:600; margin-left:8px; }
+  footer{ text-align:center; color:#94a3b8; font-size:11px; padding:20px; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>📊 주식투자 포트폴리오 대쉬보드</h1>
+  <div class="sub">기준일: 2026.04.26 (퇴직연금·김찬호) / 2026.04.05 (토스증권·개인연금) &nbsp;|&nbsp; 생성일: 2026.05.05</div>
+</div>
+
+<div class="container">
+
+  <!-- ① 전체 요약 -->
+  <div class="sec">
+    <div class="sec-header">① 전체 요약 <span class="badge">본인 3개 계좌 합산</span></div>
+    <div class="sec-body">
+      <div class="grid-4">
+        <div class="acct-card" style="border-left:4px solid #2563eb">
+          <div class="card-title">총 평가금액</div>
+          <div class="card-value">535,323,260<span style="font-size:14px;color:#64748b"> 원</span></div>
+          <div class="card-sub">투자원금 449,311,378원</div>
+        </div>
+        <div class="acct-card" style="border-left:4px solid #16a34a">
+          <div class="card-title">총 손익</div>
+          <div class="card-value" style="color:#16a34a">+86,011,882<span style="font-size:14px"> 원</span></div>
+          <div class="card-sub">수익률 <b style="color:#16a34a">+19.14%</b></div>
+        </div>
+        <div class="acct-card" style="border-left:4px solid #7c3aed">
+          <div class="card-title">월 배당금 (추정)</div>
+          <div class="card-value" style="color:#7c3aed">703,090<span style="font-size:14px;color:#64748b"> 원</span></div>
+          <div class="card-sub">26년 누적 2,812,361원 (4개월)</div>
+        </div>
+        <div class="acct-card" style="border-left:4px solid #d97706">
+          <div class="card-title">토스증권 TR 수익률</div>
+          <div class="card-value" style="color:#d97706">+17.10%</div>
+          <div class="card-sub">배당금 포함 총수익률 기준</div>
+        </div>
+      </div>
+      <!-- 김찬호 참고 -->
+      <div class="kc-box" style="margin-top:4px">
+        <div class="kc-title">참고: 김찬호 계좌 (별도 관리, 합산 제외) <span class="stamp">아들 계좌</span></div>
+        <div style="display:flex;gap:24px">
+          <span style="font-size:12px">평가금액 <b style="color:#1e3a5f">14,708,825원</b></span>
+          <span style="font-size:12px">투자원금 <b>14,492,866원</b></span>
+          <span style="font-size:12px">수익률 <b style="color:#16a34a">+1.48%</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 계좌별 현황 -->
+  <div class="sec">
+    <div class="sec-header">② 계좌별 현황 및 자산 유형 배분</div>
+    <div class="sec-body">
+      <div class="grid-2">
+        <div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+            <div class="acct-card">
+              <div class="acct-name">토스증권</div>
+              <div class="acct-amount">173,819,770</div>
+              <div class="acct-detail">
+                <span>원금 <b>159,136,511</b></span>
+                <span>손익 <b class="pos">+14,683,259</b></span>
+                <span>수익률 <b class="pos">+9.23%</b></span>
+              </div>
+            </div><div class="acct-card">
+              <div class="acct-name">퇴직연금</div>
+              <div class="acct-amount">296,006,830</div>
+              <div class="acct-detail">
+                <span>원금 <b>246,261,215</b></span>
+                <span>손익 <b class="pos">+49,745,615</b></span>
+                <span>수익률 <b class="pos">+20.20%</b></span>
+              </div>
+            </div><div class="acct-card">
+              <div class="acct-name">개인연금</div>
+              <div class="acct-amount">65,496,660</div>
+              <div class="acct-detail">
+                <span>원금 <b>43,913,652</b></span>
+                <span>손익 <b class="pos">+21,583,008</b></span>
+                <span>수익률 <b class="pos">+49.15%</b></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="margin-bottom:10px;font-size:12px;font-weight:600;color:#475569">자산 유형 배분</div>
+          
+    <div class="alloc-row">
+      <div class="alloc-label">성장형</div>
+      <div class="alloc-bar-wrap">
+        <div class="alloc-bar" style="width:44.6%;background:#2563eb"></div>
+      </div>
+      <div class="alloc-pct">44.6%</div>
+      <div class="alloc-amt">238,889,915</div>
+    </div>
+    <div class="alloc-row">
+      <div class="alloc-label">배당/커버드콜</div>
+      <div class="alloc-bar-wrap">
+        <div class="alloc-bar" style="width:33.4%;background:#16a34a"></div>
+      </div>
+      <div class="alloc-pct">33.4%</div>
+      <div class="alloc-amt">178,846,703</div>
+    </div>
+    <div class="alloc-row">
+      <div class="alloc-label">안정자산</div>
+      <div class="alloc-bar-wrap">
+        <div class="alloc-bar" style="width:18.7%;background:#d97706"></div>
+      </div>
+      <div class="alloc-pct">18.7%</div>
+      <div class="alloc-amt">100,149,142</div>
+    </div>
+    <div class="alloc-row">
+      <div class="alloc-label">개별주식</div>
+      <div class="alloc-bar-wrap">
+        <div class="alloc-bar" style="width:3.3%;background:#9333ea"></div>
+      </div>
+      <div class="alloc-pct">3.3%</div>
+      <div class="alloc-amt">17,437,500</div>
+    </div>
+          <div style="margin-top:12px;padding:10px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a">
+            <span style="font-size:12px;font-weight:600;color:#92400e">퇴직연금 위험자산 비중: </span>
+            <span style="font-size:14px;font-weight:700;color:#22c55e">68.7%</span>
+            <span style="font-size:11px;color:#92400e"> (목표 70% / 차이 -1.3%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 목표 달성 -->
+  <div class="sec">
+    <div class="sec-header">③ 목표 달성 현황</div>
+    <div class="sec-body">
+      
+    <div class="goal-item">
+      <div class="goal-header">
+        <span class="goal-name">JEPQ</span>
+        <span class="goal-eta" style="color:#f59e0b">약 24개월 후</span>
+      </div>
+      <div class="goal-nums">
+        <span>현재 <b>589.18주</b></span>
+        <span>목표 <b>1,000주</b></span>
+        <span>잔여 <b>410.82주</b></span>
+        <span style="color:#f59e0b;font-weight:700">58.9%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:58%;background:#f59e0b"></div>
+      </div>
+    </div>
+    <div class="goal-item">
+      <div class="goal-header">
+        <span class="goal-name">SPYI</span>
+        <span class="goal-eta" style="color:#ef4444">약 10개월 후</span>
+      </div>
+      <div class="goal-nums">
+        <span>현재 <b>199.98주</b></span>
+        <span>목표 <b>400주</b></span>
+        <span>잔여 <b>200.02주</b></span>
+        <span style="color:#ef4444;font-weight:700">50.0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:49%;background:#ef4444"></div>
+      </div>
+    </div>
+    <div class="goal-item">
+      <div class="goal-header">
+        <span class="goal-name">SCHD</span>
+        <span class="goal-eta" style="color:#f59e0b">배당 재투자</span>
+      </div>
+      <div class="goal-nums">
+        <span>현재 <b>1,528.67주</b></span>
+        <span>목표 <b>2,000주</b></span>
+        <span>잔여 <b>471.33주</b></span>
+        <span style="color:#f59e0b;font-weight:700">76.4%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:76%;background:#f59e0b"></div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ④ 배당금 현황 -->
+  <div class="sec">
+    <div class="sec-header">④ 배당금 현황</div>
+    <div class="sec-body">
+      <div class="grid-2">
+        <div>
+          <table>
+            <thead><tr>
+              <th style="text-align:center">순위</th><th style="text-align:left">종목명</th>
+              <th style="text-align:center">계좌</th><th>26년 배당금</th>
+              <th>25년 배당금</th><th>YoY 증감</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+        <td style="text-align:center">1</td>
+        <td>SCHD</td>
+        <td style="text-align:center;color:#6b7280;font-size:12px">토스증권</td>
+        <td style="text-align:right"><b style='color:#1e40af'>475,722</b></td>
+        <td style="text-align:right">1,419,494</td>
+        <td style="text-align:right"><span style='color:#ef4444'>-943,772</span></td>
+      </tr><tr>
+        <td style="text-align:center">2</td>
+        <td>JEPQ</td>
+        <td style="text-align:center;color:#6b7280;font-size:12px">토스증권</td>
+        <td style="text-align:right"><b style='color:#1e40af'>1,407,437</b></td>
+        <td style="text-align:right">743,822</td>
+        <td style="text-align:right"><span style='color:#22c55e'>+663,615</span></td>
+      </tr><tr>
+        <td style="text-align:center">3</td>
+        <td>BITO</td>
+        <td style="text-align:center;color:#6b7280;font-size:12px">토스증권</td>
+        <td style="text-align:right"><b style='color:#1e40af'>514,127</b></td>
+        <td style="text-align:right">4,175,531</td>
+        <td style="text-align:right"><span style='color:#ef4444'>-3,661,404</span></td>
+      </tr><tr>
+        <td style="text-align:center">4</td>
+        <td>VUG</td>
+        <td style="text-align:center;color:#6b7280;font-size:12px">토스증권</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">8,830</td>
+        <td style="text-align:right"><span style='color:#9ca3af;font-size:11px'>26.01월 매도</span></td>
+      </tr><tr>
+        <td style="text-align:center">5</td>
+        <td>SPYI</td>
+        <td style="text-align:center;color:#6b7280;font-size:12px">토스증권</td>
+        <td style="text-align:right"><b style='color:#1e40af'>242,530</b></td>
+        <td style="text-align:right">63,426</td>
+        <td style="text-align:right"><span style='color:#22c55e'>+179,104</span></td>
+      </tr><tr>
+        <td style="text-align:center">6</td>
+        <td>GLD</td>
+        <td style="text-align:center;color:#6b7280;font-size:12px">토스증권</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right"></td>
+      </tr><tr>
+        <td style="text-align:center">7</td>
+        <td>ULTY</td>
+        <td style="text-align:center;color:#6b7280;font-size:12px">토스증권</td>
+        <td style="text-align:right"><b style='color:#1e40af'>172,545</b></td>
+        <td style="text-align:right">354,386</td>
+        <td style="text-align:right"><span style='color:#ef4444'>-181,841</span></td>
+      </tr><tr>
+        <td style="text-align:center">8</td>
+        <td>JEPI</td>
+        <td style="text-align:center;color:#6b7280;font-size:12px">토스증권</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">1,322,558</td>
+        <td style="text-align:right"></td>
+      </tr><tr>
+        <td style="text-align:center">9</td>
+        <td>리얼티 인컴</td>
+        <td style="text-align:center;color:#6b7280;font-size:12px">토스증권</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">48,277</td>
+        <td style="text-align:right"></td>
+      </tr><tr>
+        <td style="text-align:center">10</td>
+        <td>SOXL</td>
+        <td style="text-align:center;color:#6b7280;font-size:12px">토스증권</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">23,569</td>
+        <td style="text-align:right"></td>
+      </tr><tr>
+        <td style="text-align:center">11</td>
+        <td>KODEX 200타겟
+위클리커버드콜</td>
+        <td style="text-align:center;color:#6b7280;font-size:12px">개인연금</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">857,127</td>
+        <td style="text-align:right"></td>
+      </tr><tr>
+        <td style="text-align:center">12</td>
+        <td>KODEX 미국S&P500</td>
+        <td style="text-align:center;color:#6b7280;font-size:12px">개인연금</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">394,434</td>
+        <td style="text-align:right"></td>
+      </tr>
+              <tr class="total-row">
+                <td></td><td>합계</td><td></td>
+                <td style="text-align:right"><b style="color:#1e40af">2,812,361</b></td>
+                <td style="text-align:right"><b>9,411,454</b></td>
+                <td style="text-align:right"><span class="neg">-6,599,093</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="acct-card" style="padding:12px">
+            <div class="card-title">26년 누적 배당금</div>
+            <div style="font-size:18px;font-weight:700;color:#1e40af">2,812,361원</div>
+          </div><div class="acct-card" style="padding:12px">
+            <div class="card-title">25년 연간 배당금</div>
+            <div style="font-size:18px;font-weight:700;color:#374151">9,411,454원</div>
+          </div><div class="acct-card" style="padding:12px">
+            <div class="card-title">월 평균 (÷4)</div>
+            <div style="font-size:18px;font-weight:700;color:#1e40af">703,090원</div>
+          </div><div class="acct-card" style="padding:12px">
+            <div class="card-title">연환산 추정 (×3)</div>
+            <div style="font-size:18px;font-weight:700;color:#7c3aed">8,437,083원</div>
+          </div><div class="acct-card" style="padding:12px">
+            <div class="card-title">YoY 증감 (연환산)</div>
+            <div style="font-size:18px;font-weight:700;color:#dc2626">-974,371원</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ 퇴직연금 보유 현황 -->
+  <div class="sec">
+    <div class="sec-header">⑤ 퇴직연금 보유 현황</div>
+    <div class="sec-body">
+      <table>
+        <thead><tr>
+          <th style="text-align:center">순번</th><th style="text-align:left">종목명</th>
+          <th>보유수량</th><th>매입단가</th><th>현재단가</th>
+          <th>매입금액</th><th>현재금액</th><th>손익</th><th>수익률</th>
+        </tr></thead>
+        <tbody>
+          <tr class="">
+        <td style="text-align:center">1</td>
+        <td style="text-align:left">TIGER 200</td>
+        <td style="text-align:right">711</td>
+        <td style="text-align:right">56,335</td>
+        <td style="text-align:right">105,280</td>
+        <td style="text-align:right">40,054,185</td>
+        <td style="text-align:right"><b>74,854,080</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+34,799,895</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+86.88%</b></td>
+      </tr><tr class="">
+        <td style="text-align:center">2</td>
+        <td style="text-align:left">TIGER 미국S&P500</td>
+        <td style="text-align:right">2,679</td>
+        <td style="text-align:right">24,880</td>
+        <td style="text-align:right">26,340</td>
+        <td style="text-align:right">66,653,520</td>
+        <td style="text-align:right"><b>70,564,860</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+3,911,340</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+5.87%</b></td>
+      </tr><tr class="">
+        <td style="text-align:center">3</td>
+        <td style="text-align:left">KODEX 미국나스닥 100</td>
+        <td style="text-align:right">1,088</td>
+        <td style="text-align:right">24,608</td>
+        <td style="text-align:right">26,945</td>
+        <td style="text-align:right">26,773,504</td>
+        <td style="text-align:right"><b>29,316,160</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+2,542,656</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+9.50%</b></td>
+      </tr><tr class="">
+        <td style="text-align:center">4</td>
+        <td style="text-align:left">TIGER 미국테크TOP10
+INDXX</td>
+        <td style="text-align:right">883</td>
+        <td style="text-align:right">30,902</td>
+        <td style="text-align:right">32,425</td>
+        <td style="text-align:right">27,286,466</td>
+        <td style="text-align:right"><b>28,631,275</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+1,344,809</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+4.93%</b></td>
+      </tr><tr class="">
+        <td style="text-align:center">5</td>
+        <td style="text-align:left">TIGER 미국30년국채
+스트립액티브(합성H)</td>
+        <td style="text-align:right">1,066</td>
+        <td style="text-align:right">37,940</td>
+        <td style="text-align:right">36,670</td>
+        <td style="text-align:right">40,444,040</td>
+        <td style="text-align:right"><b>39,090,220</b></td>
+        <td style="text-align:right;color:#ef4444"><b>-1,353,820</b></td>
+        <td style="text-align:right;color:#ef4444"><b>-3.35%</b></td>
+      </tr><tr class="">
+        <td style="text-align:center">6</td>
+        <td style="text-align:left">ACE 미국 S&P500 미국채
+혼합50 액티브</td>
+        <td style="text-align:right">3,195</td>
+        <td style="text-align:right">14,100</td>
+        <td style="text-align:right">14,405</td>
+        <td style="text-align:right">45,049,500</td>
+        <td style="text-align:right"><b>46,023,975</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+974,475</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+2.16%</b></td>
+      </tr><tr class="">
+        <td style="text-align:center">7</td>
+        <td style="text-align:left">현금성 ETF</td>
+        <td style="text-align:right">1</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right">—</td>
+        <td style="text-align:right"><b>7,526,260</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+7,526,260</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+0.00%</b></td>
+      </tr>
+          <tr class="total-row">
+            <td></td><td>합계</td><td></td><td></td><td></td>
+            <td style="text-align:right"><b>246,261,215</b></td>
+            <td style="text-align:right"><b>296,006,830</b></td>
+            <td style="text-align:right" class="pos"><b>+49,745,615</b></td>
+            <td style="text-align:right" class="pos"><b>+20.20%</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ⑥ 리밸런싱 현황 -->
+  <div class="sec">
+    <div class="sec-header">⑥ 리밸런싱 현황 <span class="badge" style="background:#ef4444">빨간 행 = ±5% 초과 → 조치 필요</span></div>
+    <div class="sec-body">
+      <div style="margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px">[ 퇴직연금 ]</div>
+        <table>
+          <thead><tr>
+            <th style="text-align:center">순번</th><th style="text-align:left">종목명</th>
+            <th>목표비중</th><th>현재비중</th><th>비중 차이</th><th>조정금액(원)</th><th>매수/매도</th>
+          </tr></thead>
+          <tbody><tr >
+          <td style="text-align:center">1</td>
+          <td style="text-align:left">TIGER 200</td>
+          <td style="text-align:center">22%</td>
+          <td style="text-align:center"><b>25.3%</b></td>
+          <td style="text-align:center;color:#22c55e"><b>-3.3%</b></td>
+          <td style="text-align:right;color:#22c55e"><b>-9,732,577</b></td>
+          <td style="text-align:center;color:#22c55e;font-weight:600">매수 필요</td>
+        </tr><tr >
+          <td style="text-align:center">2</td>
+          <td style="text-align:left">TIGER 미국S&P500</td>
+          <td style="text-align:center">25%</td>
+          <td style="text-align:center"><b>23.8%</b></td>
+          <td style="text-align:center;color:#f59e0b"><b>+1.2%</b></td>
+          <td style="text-align:right;color:#ef4444"><b>+3,436,848</b></td>
+          <td style="text-align:center;color:#ef4444;font-weight:600">매도 필요</td>
+        </tr><tr >
+          <td style="text-align:center">3</td>
+          <td style="text-align:left">KODEX 미국나스닥 100</td>
+          <td style="text-align:center">10%</td>
+          <td style="text-align:center"><b>9.9%</b></td>
+          <td style="text-align:center;color:#f59e0b"><b>+0.1%</b></td>
+          <td style="text-align:right;color:#ef4444"><b>+284,523</b></td>
+          <td style="text-align:center;color:#ef4444;font-weight:600">매도 필요</td>
+        </tr><tr >
+          <td style="text-align:center">4</td>
+          <td style="text-align:left">TIGER 미국테크TOP10
+INDXX</td>
+          <td style="text-align:center">10%</td>
+          <td style="text-align:center"><b>9.7%</b></td>
+          <td style="text-align:center;color:#f59e0b"><b>+0.3%</b></td>
+          <td style="text-align:right;color:#ef4444"><b>+969,408</b></td>
+          <td style="text-align:center;color:#ef4444;font-weight:600">매도 필요</td>
+        </tr><tr >
+          <td style="text-align:center">5</td>
+          <td style="text-align:left">TIGER 미국30년국채
+스트립액티브(합성H)</td>
+          <td style="text-align:center">10%</td>
+          <td style="text-align:center"><b>13.2%</b></td>
+          <td style="text-align:center;color:#22c55e"><b>-3.2%</b></td>
+          <td style="text-align:right;color:#22c55e"><b>-9,489,537</b></td>
+          <td style="text-align:center;color:#22c55e;font-weight:600">매수 필요</td>
+        </tr><tr >
+          <td style="text-align:center">6</td>
+          <td style="text-align:left">ACE 미국 S&P500 미국채
+혼합50 액티브</td>
+          <td style="text-align:center">20%</td>
+          <td style="text-align:center"><b>15.5%</b></td>
+          <td style="text-align:center;color:#f59e0b"><b>+4.5%</b></td>
+          <td style="text-align:right;color:#ef4444"><b>+13,177,391</b></td>
+          <td style="text-align:center;color:#ef4444;font-weight:600">매도 필요</td>
+        </tr><tr >
+          <td style="text-align:center">7</td>
+          <td style="text-align:left">현금성 ETF</td>
+          <td style="text-align:center">3%</td>
+          <td style="text-align:center"><b>2.5%</b></td>
+          <td style="text-align:center;color:#f59e0b"><b>+0.5%</b></td>
+          <td style="text-align:right;color:#ef4444"><b>+1,353,945</b></td>
+          <td style="text-align:center;color:#ef4444;font-weight:600">매도 필요</td>
+        </tr></tbody>
+        </table>
+      </div>
+      <div class="grid-2">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px">[ 개인연금 ]</div>
+          <table>
+            <thead><tr>
+              <th style="text-align:center">순번</th><th style="text-align:left">종목명</th>
+              <th>목표</th><th>현재</th><th>차이</th><th>조정금액</th><th>매수/매도</th>
+            </tr></thead>
+            <tbody><tr style="background:#fef2f2">
+          <td style="text-align:center">1</td>
+          <td style="text-align:left">KODEX 미국S&P500</td>
+          <td style="text-align:center">40%</td>
+          <td style="text-align:center"><b>54.2%</b></td>
+          <td style="text-align:center;color:#ef4444"><b>-14.2%</b></td>
+          <td style="text-align:right;color:#22c55e"><b>-9,324,876</b></td>
+          <td style="text-align:center;color:#22c55e;font-weight:600">매수 필요</td>
+        </tr><tr style="background:#fef2f2">
+          <td style="text-align:center">2</td>
+          <td style="text-align:left">KODEX 200타겟
+위클리커버드콜</td>
+          <td style="text-align:center">60%</td>
+          <td style="text-align:center"><b>45.8%</b></td>
+          <td style="text-align:center;color:#ef4444"><b>+14.2%</b></td>
+          <td style="text-align:right;color:#ef4444"><b>+9,324,876</b></td>
+          <td style="text-align:center;color:#ef4444;font-weight:600">매도 필요</td>
+        </tr></tbody>
+          </table>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:8px">[ 김찬호 계좌 ]</div>
+          <table>
+            <thead><tr>
+              <th style="text-align:center">순번</th><th style="text-align:left">종목명</th>
+              <th>목표</th><th>현재</th><th>차이</th><th>조정금액</th><th>매수/매도</th>
+            </tr></thead>
+            <tbody><tr >
+          <td style="text-align:center">1</td>
+          <td style="text-align:left">TIGER 미국S&P500</td>
+          <td style="text-align:center">50%</td>
+          <td style="text-align:center"><b>52.6%</b></td>
+          <td style="text-align:center;color:#22c55e"><b>-2.6%</b></td>
+          <td style="text-align:right;color:#22c55e"><b>-389,548</b></td>
+          <td style="text-align:center;color:#22c55e;font-weight:600">매수 필요</td>
+        </tr><tr >
+          <td style="text-align:center">2</td>
+          <td style="text-align:left">KODEX 미국나스닥 100</td>
+          <td style="text-align:center">30%</td>
+          <td style="text-align:center"><b>27.3%</b></td>
+          <td style="text-align:center;color:#f59e0b"><b>+2.7%</b></td>
+          <td style="text-align:right;color:#ef4444"><b>+397,842</b></td>
+          <td style="text-align:center;color:#ef4444;font-weight:600">매도 필요</td>
+        </tr><tr >
+          <td style="text-align:center">3</td>
+          <td style="text-align:left">KODEX 200</td>
+          <td style="text-align:center">20%</td>
+          <td style="text-align:center"><b>20.0%</b></td>
+          <td style="text-align:center;color:#22c55e"><b>-0.0%</b></td>
+          <td style="text-align:right;color:#22c55e"><b>-6,495</b></td>
+          <td style="text-align:center;color:#22c55e;font-weight:600">매수 필요</td>
+        </tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:#64748b;font-style:italic">
+        ※ 음수(−) 조정금액 = 매수 필요 &nbsp;/&nbsp; 양수(+) = 매도 필요
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑦ 개인연금 -->
+  <div class="sec">
+    <div class="sec-header">⑦ 개인연금</div>
+    <div class="sec-body">
+      <div class="grid-2">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:8px">보유 현황</div>
+          <table>
+            <thead><tr>
+              <th style="text-align:center">순번</th><th style="text-align:left">종목명</th>
+              <th>수량</th><th>매입단가</th><th>현재단가</th>
+              <th>현재금액</th><th>손익</th><th>수익률</th>
+            </tr></thead>
+            <tbody>
+              <tr>
+        <td style="text-align:center">1</td>
+        <td style="text-align:left">KODEX 미국S&P500</td>
+        <td style="text-align:right">1,482</td>
+        <td style="text-align:right">18,503</td>
+        <td style="text-align:right">23,970</td>
+        <td style="text-align:right">35,523,540</td>
+        <td style="text-align:right;color:#22c55e"><b>+8,102,094</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+29.55%</b></td>
+      </tr><tr>
+        <td style="text-align:center">2</td>
+        <td style="text-align:left">KODEX 200타겟
+위클리커버드콜</td>
+        <td style="text-align:right">1,398</td>
+        <td style="text-align:right">11,797</td>
+        <td style="text-align:right">21,440</td>
+        <td style="text-align:right">29,973,120</td>
+        <td style="text-align:right;color:#22c55e"><b>+13,480,914</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+81.74%</b></td>
+      </tr>
+              <tr class="total-row">
+                <td></td><td>합계</td><td></td><td></td><td></td>
+                <td style="text-align:right"><b>65,496,660</b></td>
+                <td style="text-align:right" class="pos"><b>+21,583,008</b></td>
+                <td style="text-align:right" class="pos"><b>+49.15%</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:8px">분배금 현황 (연금계좌 내 재투자)</div>
+          <table>
+            <thead><tr>
+              <th style="text-align:left">종목명</th><th>25년 분배금</th><th>26년</th><th>비고</th>
+            </tr></thead>
+            <tbody>
+              <tr><td>KODEX 200타겟CC</td><td style="text-align:right">857,127</td>
+                <td style="text-align:center;color:#9ca3af">—</td><td style="color:#6b7280;font-size:11px">재투자</td></tr>
+              <tr><td>KODEX 미국S&P500</td><td style="text-align:right">394,434</td>
+                <td style="text-align:center;color:#9ca3af">—</td><td style="color:#6b7280;font-size:11px">재투자</td></tr>
+              <tr class="total-row"><td>합계</td><td style="text-align:right"><b>1,251,561</b></td>
+                <td></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑧ 김찬호 계좌 -->
+  <div class="sec">
+    <div class="sec-header">⑧ 김찬호 계좌 <span class="badge">아들 계좌 별도 관리</span></div>
+    <div class="sec-body">
+      <table>
+        <thead><tr>
+          <th style="text-align:center">순번</th><th style="text-align:left">종목명</th>
+          <th>보유수량</th><th>매입단가</th><th>현재단가</th>
+          <th>현재금액</th><th>손익</th><th>수익률</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+        <td style="text-align:center">1</td>
+        <td style="text-align:left">TIGER 미국S&P500</td>
+        <td style="text-align:right">294</td>
+        <td style="text-align:right">26,246</td>
+        <td style="text-align:right">26,340</td>
+        <td style="text-align:right">7,743,960</td>
+        <td style="text-align:right;color:#22c55e"><b>+27,636</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+0.36%</b></td>
+      </tr><tr>
+        <td style="text-align:center">2</td>
+        <td style="text-align:left">KODEX 미국나스닥 100</td>
+        <td style="text-align:right">149</td>
+        <td style="text-align:right">26,766</td>
+        <td style="text-align:right">26,945</td>
+        <td style="text-align:right">4,014,805</td>
+        <td style="text-align:right;color:#22c55e"><b>+26,671</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+0.67%</b></td>
+      </tr><tr>
+        <td style="text-align:center">3</td>
+        <td style="text-align:left">KODEX 200</td>
+        <td style="text-align:right">28</td>
+        <td style="text-align:right">99,586</td>
+        <td style="text-align:right">105,295</td>
+        <td style="text-align:right">2,948,260</td>
+        <td style="text-align:right;color:#22c55e"><b>+159,852</b></td>
+        <td style="text-align:right;color:#22c55e"><b>+5.73%</b></td>
+      </tr>
+          <tr class="total-row">
+            <td></td><td>합계</td><td></td><td></td><td></td>
+            <td style="text-align:right"><b>14,708,825</b></td>
+            <td style="text-align:right" class="pos"><b>+214,159</b></td>
+            <td style="text-align:right" class="pos"><b>+1.48%</b></td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:10px;padding:10px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a;font-size:12px;color:#92400e">
+        ※ KODEX 200 (20%) → 장기적으로 나스닥100 또는 전세계 인덱스(ACWI)로 교체 검토 권장
+      </div>
+    </div>
+  </div>
+
+</div>
+<footer>📊 주식투자 포트폴리오 대쉬보드 | 생성일: 2026.05.05 | 기준일: 2026.04.26(퇴직연금) / 2026.04.05(토스·개인연금)</footer>
+</body>
+</html>
