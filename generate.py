@@ -34,12 +34,12 @@ d["growth_amt"]   = v(ws_h["E5"].value)
 d["div_amt"]      = v(ws_h["E6"].value)
 d["stock_amt"]    = v(ws_h["E7"].value)
 d["stable_amt"]   = v(ws_h["E8"].value)
-d["toss_cost"]    = v(ws_t["E4"].value)
-d["toss_gain"]    = v(ws_t["K4"].value)
-d["toss_ret"]     = vp(ws_t["L4"].value)
-d["toss_tr"]      = v(ws_t["N4"].value)
-d["toss_tr_ret"]  = vp(ws_t["O4"].value)
-d["toss_div_26"]  = v(ws_t["M4"].value)
+d["toss_cost"]    = v(ws_t["G4"].value)   # C·D열 삽입으로 E→G
+d["toss_gain"]    = v(ws_t["M4"].value)   # K→M
+d["toss_ret"]     = vp(ws_t["N4"].value)  # L→N
+d["toss_tr"]      = v(ws_t["P4"].value)   # N→P
+d["toss_tr_ret"]  = vp(ws_t["Q4"].value)  # O→Q
+d["toss_div_26"]  = v(ws_t["O4"].value)   # M→O
 d["retire_cost"]  = v(ws_r["H5"].value)
 d["retire_gain"]  = v(ws_r["L5"].value)
 d["retire_ret"]   = vp(ws_r["M5"].value)
@@ -65,13 +65,15 @@ for r in range(5, 100):
     nm = ws_t.cell(r, 2).value
     if not nm: break  # 종목명 비면 자동 중단
     toss_rows.append({
-        "rank": int(rk) if rk else r - 4, "name": nm,
-        "qty":  v(ws_t.cell(r, 3).value),
-        "cost": v(ws_t.cell(r, 5).value),
-        "cur":  v(ws_t.cell(r, 9).value),
-        "gain": v(ws_t.cell(r, 11).value),
-        "ret":  vp(ws_t.cell(r, 12).value),
-        "div":  v(ws_t.cell(r, 13).value),
+        "rank":   int(rk) if rk else r - 4, "name": nm,
+        "target": v(ws_t.cell(r, 3).value),   # C열: 목표주수 (신규)
+        "daily":  v(ws_t.cell(r, 4).value),   # D열: 일일투자 (신규)
+        "qty":    v(ws_t.cell(r, 5).value),   # E열: 수량 (C·D 삽입으로 3→5)
+        "cost":   v(ws_t.cell(r, 7).value),   # G열: 매입금액 (5→7)
+        "cur":    v(ws_t.cell(r, 11).value),  # K열: 현재금액 (9→11)
+        "gain":   v(ws_t.cell(r, 13).value),  # M열: 손익 (11→13)
+        "ret":    vp(ws_t.cell(r, 14).value), # N열: 수익률 (12→14)
+        "div":    v(ws_t.cell(r, 15).value),  # O열: 배당금 (13→15)
     })
 
 retire_rows = []
@@ -135,14 +137,16 @@ for r in range(4, 100):
 
 goals = []
 for row in toss_rows:
-    nm = row["name"]
-    price = row["cur"] / row["qty"] if row["qty"] else 0
-    if nm == "JEPQ":
-        goals.append({"name": "JEPQ", "cur": row["qty"], "target": 1000, "daily": 120000, "price": price})
-    elif nm == "SPYI":
-        goals.append({"name": "SPYI", "cur": row["qty"], "target": 400,  "daily": 50000,  "price": price})
-    elif nm == "SCHD":
-        goals.append({"name": "SCHD", "cur": row["qty"], "target": 2000, "daily": 0,      "price": price})
+    # 목표주수가 엑셀에 입력된 종목만 목표 달성 섹션에 표시
+    if row["target"] and row["target"] > 0:
+        price = row["cur"] / row["qty"] if row["qty"] else 0
+        goals.append({
+            "name":   row["name"],
+            "cur":    row["qty"],
+            "target": row["target"],
+            "daily":  row["daily"] if row["daily"] else 0,
+            "price":  price,
+        })
 
 # 유틸리티
 def fmt(n, sign=False):
